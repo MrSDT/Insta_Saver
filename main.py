@@ -1,5 +1,5 @@
 import telegram
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram.ext import Updater, CommandHandler, MessageHandler, filters
 import instaloader
 import os
 from config import telegram_bot_token
@@ -36,7 +36,7 @@ updater = Updater(token=telegram_bot_token, use_context=True)
 start_handler = CommandHandler('start', start)
 updater.dispatcher.add_handler(start_handler)
 
-text_handler = MessageHandler(Filters.text & (~Filters.command), download_post)
+text_handler = MessageHandler(filters.text & (~filters.command), download_post)
 updater.dispatcher.add_handler(text_handler)
 
 updater.start_polling()
