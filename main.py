@@ -1,47 +1,43 @@
-import telegram
-from telegram.ext import Updater, CommandHandler, MessageHandler, filters
+import logging
+from telegram import Update
+from telegram.ext import Updater, MessageHandler, CommandHandler, filters, CallbackContext
 import instaloader
-import os
-from config import TELEGRAM_TOKEN_BOT
+from telegram.constants import ParseMode
+from queue import Queue
+from telegram.ext import PicklePersistence
 
-telegram_bot_token = TELEGRAM_TOKEN_BOT
-bot = telegram.Bot(token=telegram_bot_token)
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
+TELEGRAM_BOT_TOKEN = '5948179345:AAEcHxNG-V2vvn5RxshNaXXywL4Gw3yArBk'
+def start(update: Update, context):
+    update.message.reply_text('Welcome to the Instagram post downloader bot! Please send me the link to the Instagram post you want to download.')
 
-def start(update, context):
-    context.bot.send_message(
-        chat_id=update.message.chat_id,
-        text="Hello, I'm a bot that can download Instagram posts. Just send me the link to the post and I will send you the downloaded media."
-    )
-
-
-def download_post(update, context):
-    post_url = update.message.text
+def download_post(update: Update, context):
+    url = update.message.text
     L = instaloader.Instaloader()
+    post = instaloader.Post.from_shortcode(L.context, url.split("/")[-2])
+    context.bot.send_photo(chat_id=update.message.chat_id, photo=post.url, caption=post.caption)
 
-    # Login to Instagram (optional)
-    # L.interactive_login("<username>")
+def help(update: Update, context):
+    update.message.reply_text('Send me the link to the Instagram post you want to download.')
 
-    # Get post by url
-    post = instaloader.Post.from_shortcode(L.context, post_url.split("/")[-2])
+def error(update: Update, context):
+    logging.error(f'Update {update} caused error {context.error}')
 
-    # Download the media
-    L.download_post(post, target=os.getcwd())
+def main():
+    persistence = PicklePersistence(filename='my_bot_data')
+    updater = Updater(token=TELEGRAM_BOT_TOKEN, persistence=persistence)
+    dispatcher = updater.dispatcher
 
-    # Send the media to the user
-    for filename in os.listdir():
-        if filename.startswith(post.shortcode):
-            context.bot.send_document(chat_id=update.message.chat_id, document=open(filename, 'rb'))
-            os.remove(filename)
+    # Registering all handlers
+    start_handler = CommandHandler('start', start)
+    dispatcher.add_handler(start_handler)
+
+    # other handlers
+
+    updater.start_polling()
+    updater.idle()
 
 
-updater = Updater(bot=bot)
-
-start_handler = CommandHandler('start', start)
-updater.dispatcher.add_handler(start_handler)
-
-text_handler = MessageHandler(filters.text & (~filters.command), download_post)
-updater.dispatcher.add_handler(text_handler)
-
-updater.start_polling()
-updater.idle()
+if __name__ == '__main__':
+    main()
