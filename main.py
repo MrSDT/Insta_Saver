@@ -2,7 +2,7 @@ import telegram
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import instaloader
 import os
-
+from config import telegram_bot_token
 
 def start(update, context):
     context.bot.send_message(
@@ -31,7 +31,7 @@ def download_post(update, context):
             os.remove(filename)
 
 
-updater = Updater(token='5948179345:AAEcHxNG-V2vvn5RxshNaXXywL4Gw3yArBk', use_context=True)
+updater = Updater(token=telegram_bot_token, use_context=True)
 
 start_handler = CommandHandler('start', start)
 updater.dispatcher.add_handler(start_handler)
@@ -41,3 +41,4 @@ updater.dispatcher.add_handler(text_handler)
 
 updater.start_polling()
 updater.idle()
+
