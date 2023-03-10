@@ -2,13 +2,13 @@ import telegram
 from telegram.ext import Updater, CommandHandler, MessageHandler, filters
 import instaloader
 import os
-from config import telegram_bot_token
+from config import TELEGRAM_TOKEN_BOT
 
 def start(update, context):
     context.bot.send_message(
         chat_id=update.message.chat_id,
-        text="Hello, I'm a bot that can download Instagram posts. Just send me the link to the post and I will send you the downloaded media."
-    )
+          text="Hello, I'm a bot that can download Instagram posts. Just send me the link to the post and I will send you the downloaded media."
+          )
 
 
 def download_post(update, context):
@@ -31,7 +31,9 @@ def download_post(update, context):
             os.remove(filename)
 
 
-updater = Updater(token=telegram_bot_token, use_context=True)
+telegram_bot_token = TELEGRAM_TOKEN_BOT
+bot = telegram.Bot(token=telegram_bot_token)
+updater = Updater(bot=bot, use_context=True)
 
 start_handler = CommandHandler('start', start)
 updater.dispatcher.add_handler(start_handler)
@@ -39,6 +41,6 @@ updater.dispatcher.add_handler(start_handler)
 text_handler = MessageHandler(filters.text & (~filters.command), download_post)
 updater.dispatcher.add_handler(text_handler)
 
+
 updater.start_polling()
 updater.idle()
-
